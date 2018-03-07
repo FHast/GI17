@@ -319,8 +319,27 @@ class Graph(object):
         :param other: Graph to add to `self'.
         :return: New graph which is a disjoint union of `self' and `other'.
         """
-        # TODO: implementation
-        pass
+
+        disjoint_union = Graph(self.directed, self.simple)
+        vertex_map = {}
+
+        for v in self.vertices:
+            new_v = Vertex(disjoint_union)
+            disjoint_union.add_vertex(new_v)
+            vertex_map[v] = new_v
+        for e in self.edges:
+            new_e = Edge(vertex_map[e.tail], vertex_map[e.head])
+            disjoint_union.add_edge(new_e)
+
+        for v in other.vertices:
+            new_v = Vertex(disjoint_union)
+            disjoint_union.add_vertex(new_v)
+            vertex_map[v] = new_v
+        for e in other.edges:
+            new_e = Edge(vertex_map[e.tail], vertex_map[e.head])
+            disjoint_union.add_edge(new_e)
+
+        return disjoint_union
 
     def __iadd__(self, other: Union[Edge, Vertex]) -> "Graph":
         """
