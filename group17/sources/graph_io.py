@@ -12,7 +12,7 @@ Includes functions for reading and writing graphs, in a very simple readable for
 import sys
 from typing import IO, Tuple, List, Union
 
-from graph import Graph, Edge
+from group17.sources.graph import Graph, Edge
 
 DEFAULT_COLOR_SCHEME = "paired12"
 NUM_COLORS = 12
@@ -244,8 +244,10 @@ def write_dot(graph: Graph, f: IO[str], directed=False):
 
     f.write('}')
 
+
 if __name__ == "__main__":
     from mygraphs import MyGraph
+
     with open('examplegraph.gr') as f:
         G = load_graph(f, MyGraph)
     print(G)

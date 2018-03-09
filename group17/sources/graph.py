@@ -197,7 +197,7 @@ class Edge(object):
 
 
 class Graph(object):
-    def __init__(self, directed: bool, n: int=0, simple: bool=False):
+    def __init__(self, directed: bool, n: int = 0, simple: bool = False):
         """
         Creates a graph.
         :param directed: Whether the graph should behave as a directed graph.
@@ -325,6 +325,7 @@ class Graph(object):
 
         for v in self.vertices:
             new_v = Vertex(disjoint_union)
+            new_v.id = 0
             disjoint_union.add_vertex(new_v)
             vertex_map[v] = new_v
         for e in self.edges:
@@ -333,6 +334,7 @@ class Graph(object):
 
         for v in other.vertices:
             new_v = Vertex(disjoint_union)
+            new_v.id = 1
             disjoint_union.add_vertex(new_v)
             vertex_map[v] = new_v
         for e in other.edges:
