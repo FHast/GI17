@@ -4,7 +4,7 @@ Created on 9 Apr 2018
 @author: gereon
 '''
 
-from sources.fastestiso import color_refinement, evaluate_coloring
+from sources.iso import color_refinement, evaluate_coloring
 from sources.permv2 import permutation
 from sources.basicpermutationgroup import FindNonTrivialOrbit, Orbit, Stabilizer
 import os
