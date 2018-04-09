@@ -5,8 +5,8 @@ from math import inf
 
 from shutil import rmtree
 
-from group17.sources.dll import DoublyLinkedList
-from group17.sources.graph_io import load_graph, write_dot
+from sources.dll import DoublyLinkedList
+from sources.graph_io import load_graph, write_dot
 
 TEST_GRAPHS = set()
 
@@ -255,9 +255,11 @@ if __name__ == "__main__":
                 L = load_graph(f, read_list=True)[0]
 
             for i in range(len(L)):
-                g = L[i] + L[i]
-                num_aut = count_aut([], g.vertices)
-                print(num_aut)
+                for j in range(i + 1, len(L)):
+                    g = L[i] + L[j]
+                    num_aut = count_aut([], g.vertices)
+                    if num_aut != 0:
+                        print(i, j, num_aut)
 
             # for i in range(len(L) - 1):
             #     for j in range(i + 1, len(L)):

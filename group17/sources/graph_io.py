@@ -12,7 +12,7 @@ Includes functions for reading and writing graphs, in a very simple readable for
 import sys
 from typing import IO, Tuple, List, Union
 
-from group17.sources.graph import Graph, Edge
+from sources.graph import Graph, Edge
 
 DEFAULT_COLOR_SCHEME = "paired12"
 NUM_COLORS = 12
