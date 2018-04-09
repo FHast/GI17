@@ -291,7 +291,7 @@ def color_refinement(colored, uncolored):
                         queue.append(next_free_color)
                         in_queue[next_free_color] = True
 
-                        next_free_color += 1
+                    next_free_color += 1
             if biggest_class is not None:
                 if biggest_class_size < len(coloring[i]):
                     queue.append(biggest_class)
