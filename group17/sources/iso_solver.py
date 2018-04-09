@@ -2,10 +2,14 @@ import os
 from group17.sources.graph_io import load_graph
 from group17.sources.iso import solve_aut_single, solve_gi, solve_aut_list
 
+# The name of the directory that contains the graph files
 GRAPH_DIRECTORY = "testfiles"
-DOT_DIRECTORY = "dot"
 
-if __name__ == "__main__":
+
+def iso_solver():
+    """
+    Handles user interaction and chooses algorithms to use accordingly
+    """
     top_path = os.path.dirname(os.getcwd())
     graph_path = os.path.join(top_path, GRAPH_DIRECTORY)
     if os.path.exists(graph_path):
@@ -44,6 +48,9 @@ if __name__ == "__main__":
                         print("Input should be either 'y' or 'n'")
             else:
                 print("Could not find graph file '" + file_name + "' in path '" + graph_path + "'")
-
     else:
         print("Could not find graph directory '" + GRAPH_DIRECTORY + "' in path '" + top_path + "'")
+
+
+if __name__ == "__main__":
+    iso_solver()

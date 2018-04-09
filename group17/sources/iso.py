@@ -1,95 +1,203 @@
-import os
-
-import time
 from math import inf
-
-from shutil import rmtree
-
 from group17.sources.dll import DoublyLinkedList
-from group17.sources.graph_io import load_graph, write_dot
 
-TEST_GRAPHS = set()
 
-# TEST_GRAPHS.add("threepaths5.gr")
-# TEST_GRAPHS.add("threepaths10.gr")
-# TEST_GRAPHS.add("threepaths20.gr")
-# TEST_GRAPHS.add("threepaths40.gr")
-# TEST_GRAPHS.add("threepaths80.gr")
-# TEST_GRAPHS.add("threepaths160.gr")
-# TEST_GRAPHS.add("threepaths320.gr")
-# TEST_GRAPHS.add("threepaths640.gr")
-# TEST_GRAPHS.add("threepaths1280.gr")
-# TEST_GRAPHS.add("threepaths2560.gr")
-# TEST_GRAPHS.add("threepaths5120.gr")
-# TEST_GRAPHS.add("threepaths10240.gr")
-# TEST_GRAPHS.add("colorref_smallexample_4_7.grl")
-# TEST_GRAPHS.add("colorref_smallexample_4_16.grl")
-# TEST_GRAPHS.add("colorref_smallexample_6_15.grl")
-# TEST_GRAPHS.add("torus24.grl")
-# TEST_GRAPHS.add("colorref_smallexample_2_49.grl")
-# TEST_GRAPHS.add("trees36.grl")
-# TEST_GRAPHS.add("cubes6.grl")
-TEST_GRAPHS.add("torus144.grl")
+def solve_gi(graphs):
+    """
+    Solves the graph isomorphism problem given a list of graphs
+    Prints lists of graphs that are isomorphic
+    :param graphs: The graphs to check for being isomorphic or not
+    """
+    to_solve = list(range(len(graphs)))
+    result = []
+    while to_solve:
+        i = to_solve.pop(0)
+        g = graphs[i]
+        matches = [i]
+        for j in to_solve:
+            h = graphs[j]
+            u = g + h
+            if is_isomorphic([], u.vertices):
+                matches.append(j)
+        for x in matches:
+            if x in to_solve:
+                to_solve.remove(x)
+        result.append(matches)
+    print("\nSets of isomorphic graphs:")
+    for s in result:
+        print(s)
 
-READ_LIST = True
 
-TESTFILES_PATH = os.path.split(os.getcwd())[0] + "/testfiles/"
-DOTFILES_PATH = os.path.split(os.getcwd())[0] + "/dotfiles/"
+def solve_aut_single(graph):
+    """
+    Solves the automorphism counting problem for a single graph
+    Prints the number of automorphisms of the graph
+    :param graph: The graph to solve
+    """
+    u = graph + graph
+    num_aut = count_aut([], u.vertices)
+    print("\nNumber of automorphisms: " + str(num_aut))
+
+
+def solve_aut_list(graphs):
+    """
+    Solves the automorphism counting problem for a list of graphs
+    First finds a list of isomorphic graphs and then counts the automorphisms of one of these graphs
+    Prints lists of isomorphic graphs with their respective automorphism count
+    :param graphs: The graphs to solve
+    """
+    to_solve = list(range(len(graphs)))
+    sets = []
+    num_aut = []
+    while to_solve:
+        i = to_solve.pop(0)
+        g = graphs[i]
+        matches = [i]
+        for j in to_solve:
+            h = graphs[j]
+            u = g + h
+            if is_isomorphic([], u.vertices):
+                matches.append(j)
+        for x in matches:
+            if x in to_solve:
+                to_solve.remove(x)
+        sets.append(matches)
+        w = g + g
+        num_aut.append(count_aut([], w.vertices))
+
+    print("\n{0:30}  {1}".format("Sets of isomorphic graphs:", "Number of automorphisms:"))
+    i = 0
+    while i < len(sets):
+        print("{0:30}  {1}".format(str(sets[i]), str(num_aut[i])))
+        i += 1
+
+
+def is_isomorphic(colored, uncolored):
+    """
+    Determines whether an isomorphism exists between two graphs by looking at their vertices
+    These vertices are split up into those with an initial coloring and those without
+    Any vertex of either of the graphs should be in one of the two lists at any time
+    :param colored: A list of lists of vertices with the same initial color
+    :param uncolored: A list of all vertices that have no initial color
+    :return: Whether there is an isomorphism between the graphs or not
+    """
+    coloring = color_refinement(colored, uncolored)
+    evaluation = evaluate_coloring(coloring)
+    if not evaluation[0]:
+        return False
+    x = evaluation[1]
+    if x is None:
+        return True
+    else:
+        uncolored.remove(x)
+        for y in evaluation[2]:
+            pair = (x, y)
+            colored.append(pair)
+            uncolored.remove(y)
+            if is_isomorphic(colored, uncolored):
+                return True
+            uncolored.append(y)
+            colored.remove(pair)
+        uncolored.append(x)
+        return False
+
+
+def count_aut(colored, uncolored):
+    """
+    Counts the number of automorphisms of a graph
+    The parameters should contain vertices of the disjoint union of this graph and a copy
+    These vertices are split up into those with an initial coloring and those without
+    Any vertex of either of the graphs should be in one of the two lists at any time
+    :param colored: A list of lists of vertices with the same initial color
+    :param uncolored: A list of all vertices that have no initial color
+    :return: The amount of automorphisms of a given graph
+    """
+    coloring = color_refinement(colored, uncolored)
+    evaluation = evaluate_coloring(coloring)
+    result = 0
+    if not evaluation[0]:
+        return 0
+    x = evaluation[1]
+    if x is None:
+        return 1
+    else:
+        uncolored.remove(x)
+        for y in evaluation[2]:
+            pair = (x, y)
+            colored.append(pair)
+            uncolored.remove(y)
+            result += count_aut(colored, uncolored)
+            uncolored.append(y)
+            colored.remove(pair)
+        uncolored.append(x)
+        return result
 
 
 def color_refinement(colored, uncolored):
-    free_color = 0
+    """
+    Determines the coarsest stable coloring that refines the coloring provided
+    This provided coloring is split up in vertices with an initial coloring and those without
+    Any vertex of either of the graphs should be in one of the two lists at any time
+    :param colored: A list of lists of vertices with the same initial color
+    :param uncolored: A list of all vertices without an initial color
+    :return: The coarsest stable coloring
+    """
+    next_free_color = 0
 
-    # Colors that need to be refined
+    # List of colors that still need to be compared to for refinement
     queue = []
 
-    # List of color classes as DLL's containing all vertices in that color class
-    color_classes = []
-
-    # List of booleans to indicate if a color is in the queue
+    # List of booleans to indicate if a color is or has been in the queue by index
     in_queue = []
 
-    # Maps vertices to dll nodes
+    # List of DoublyLinkedLists of vertices representing the coloring
+    coloring = []
+
+    # Dictionary that maps each vertex to the node in the coloring representing that vertex
     vertex_to_node = {}
 
-    # Maps vertices to color classes
+    # Dictionary that maps each vertex to its current color
     vertex_to_color = {}
 
-    # Maps vertex degree values to color values
+    # Dictionary that maps every observed degree to a color
     degree_to_color = {}
 
+    # Initialises local variables with the initially colored vertices
     for cell in colored:
         dll = DoublyLinkedList()
         for v in cell:
-            vertex_to_color[v] = free_color
+            vertex_to_color[v] = next_free_color
             node = dll.append_right(v)
             vertex_to_node[v] = node
-        color_classes.append(dll)
-        free_color += 1
+        coloring.append(dll)
+        next_free_color += 1
         in_queue.append(False)
 
+    # Initialises local variables with the vertices without initial color
+    # These vertices are grouped and given the same color according to their degree
     for v in uncolored:
         d = v.degree
         if d in degree_to_color:
             color = degree_to_color[d]
             vertex_to_color[v] = color
-            dll = color_classes[color]
+            dll = coloring[color]
             node = dll.append_right(v)
             vertex_to_node[v] = node
         else:
-            degree_to_color[d] = free_color
-            vertex_to_color[v] = free_color
+            degree_to_color[d] = next_free_color
+            vertex_to_color[v] = next_free_color
             dll = DoublyLinkedList()
-            color_classes.append(dll)
+            coloring.append(dll)
             node = dll.append_right(v)
             vertex_to_node[v] = node
-            free_color += 1
+            next_free_color += 1
             in_queue.append(False)
 
+    # Initialises the queue with all colors in the current coloring, except for the color of the largest color class
     x = 0
-    size = len(color_classes[0])
-    for y in range(1, len(color_classes)):
-        k = len(color_classes[y])
+    size = len(coloring[0])
+    for y in range(1, len(coloring)):
+        k = len(coloring[y])
         if k < size:
             queue.append(y)
             in_queue[y] = True
@@ -100,13 +208,18 @@ def color_refinement(colored, uncolored):
             size = k
 
     while queue:
+        current_color = queue.pop(0)
 
-        popped = queue.pop(0)
-
+        # Dictionary that maps all neighbours of the vertices inside the current color class
+        # to the amount of transitions it has to vertices inside the current color class
         vertex_to_transitions = {}
+
+        # Dictionary that maps the colors of all neighbours of the vertices inside the current color class
+        # to a set of the neighbours with that color
         color_to_vertices = {}
 
-        for v in color_classes[popped]:
+        # Fill the two new dictionaries accordingly
+        for v in coloring[current_color]:
             for n in v.neighbours:
                 if n in vertex_to_transitions:
                     vertex_to_transitions[n] += 1
@@ -121,8 +234,12 @@ def color_refinement(colored, uncolored):
                     s.add(n)
                     color_to_vertices[i] = s
 
+        # Dictionary that maps the colors of all neighbours of the vertices inside the current color class
+        # to dictionaries that maps the amount of transitions to vertices inside the current color class
+        # to a set of the neighbours that of that color and transition count
         color_to_transitions_to_vertices = {}
 
+        # Fill the new dictionary accordingly
         for i in color_to_vertices:
             m = {}
             for v in color_to_vertices[i]:
@@ -135,13 +252,20 @@ def color_refinement(colored, uncolored):
                     m[c] = s
             color_to_transitions_to_vertices[i] = m
 
+        # Checks for all colors encountered if each vertex of this color has the same number of transitions
+        # to vertices inside the current color class
+        # Color classes are split up if this is not the case, creating a new color class for each transition count
+        # If a color class is split up and the current color is in the queue, then all newly created color classes
+        # are added to the queue.
+        # If a color class is split up and the current color is not in the queue, then all color classes except the
+        # biggest out of the newly created classes and the remaining current color class are added
         for i in color_to_transitions_to_vertices:
             m = color_to_transitions_to_vertices[i]
             biggest_class = None
             biggest_class_size = 0
             for c in m:
                 s = m[c]
-                if len(s) < len(color_classes[i]):
+                if len(s) < len(coloring[i]):
                     dll = DoublyLinkedList()
                     in_queue.append(False)
 
@@ -149,37 +273,50 @@ def color_refinement(colored, uncolored):
                         node = dll.append_right(v)
                         vertex_to_node[v].remove()
                         vertex_to_node[v] = node
-                        vertex_to_color[v] = free_color
-                    color_classes.append(dll)
+                        vertex_to_color[v] = next_free_color
+                    coloring.append(dll)
 
                     if in_queue[i]:
-                        queue.append(free_color)
-                        in_queue[free_color] = True
+                        queue.append(next_free_color)
+                        in_queue[next_free_color] = True
                     elif biggest_class is None:
-                        biggest_class = free_color
+                        biggest_class = next_free_color
                         biggest_class_size = len(dll)
                     elif len(dll) > biggest_class_size:
                         queue.append(biggest_class)
                         in_queue[biggest_class] = True
-                        biggest_class = free_color
+                        biggest_class = next_free_color
                         biggest_class_size = len(dll)
                     else:
-                        queue.append(free_color)
-                        in_queue[free_color] = True
+                        queue.append(next_free_color)
+                        in_queue[next_free_color] = True
 
-                    free_color += 1
+                        next_free_color += 1
             if biggest_class is not None:
-                if biggest_class_size < len(color_classes[i]):
+                if biggest_class_size < len(coloring[i]):
                     queue.append(biggest_class)
                     in_queue[biggest_class] = True
                 else:
                     queue.append(i)
                     in_queue[i] = True
 
-    return color_classes
+    return coloring
 
 
 def evaluate_coloring(coloring):
+    """
+    Evaluates a given coloring
+    Determines whether this coloring is balanced or not
+    If the coloring is balanced it determines whether it defines a bijection
+    When there is no bijection defined, ideal vertices are determined for branching
+    :param coloring: The coloring to evaluate
+    :return: If the coloring is unbalanced, the first value is False and the other values are irrelevant
+             If the coloring defines a bijection, the first value is True,
+             the second is None and the third is irrelevant
+             If the coloring is balanced but does not define a bijection, the first value is True,
+             the second value is a vertex from the first graph and
+             the third value a list of all vertices of the second graph in the same color class
+    """
     smallest_class = None
     smallest_class_size = inf
     for cell in coloring:
@@ -211,101 +348,3 @@ def evaluate_coloring(coloring):
             elif x is None:
                 x = v
         return True, x, y
-
-
-def count_aut(colored, uncolored):
-    coloring = color_refinement(colored, uncolored)
-    evaluation = evaluate_coloring(coloring)
-    result = 0
-    if not evaluation[0]:
-        return 0
-    x = evaluation[1]
-    if x is None:
-        return 1
-    else:
-        uncolored.remove(x)
-        for y in evaluation[2]:
-            pair = (x, y)
-            colored.append(pair)
-            uncolored.remove(y)
-            result += count_aut(colored, uncolored)
-            uncolored.append(y)
-            colored.remove(pair)
-        uncolored.append(x)
-        return result
-
-
-def is_isomorphic(colored, uncolored):
-    coloring = color_refinement(colored, uncolored)
-    evaluation = evaluate_coloring(coloring)
-    if not evaluation[0]:
-        return False
-    x = evaluation[1]
-    if x is None:
-        return True
-    else:
-        uncolored.remove(x)
-        for y in evaluation[2]:
-            pair = (x, y)
-            colored.append(pair)
-            uncolored.remove(y)
-            if is_isomorphic(colored, uncolored):
-                return True
-            uncolored.append(y)
-            colored.remove(pair)
-        uncolored.append(x)
-        return False
-
-
-def solve_aut_single(graph):
-    u = graph + graph
-    num_aut = count_aut([], u.vertices)
-    print("\nNumber of automorphisms: " + str(num_aut))
-
-
-def solve_aut_list(graphs):
-    to_solve = list(range(len(graphs)))
-    sets = []
-    num_aut = []
-    while to_solve:
-        i = to_solve.pop(0)
-        g = graphs[i]
-        matches = [i]
-        for j in to_solve:
-            h = graphs[j]
-            u = g + h
-            if is_isomorphic([], u.vertices):
-                matches.append(j)
-        for x in matches:
-            if x in to_solve:
-                to_solve.remove(x)
-        sets.append(matches)
-        w = g + g
-        num_aut.append(count_aut([], w.vertices))
-    print("\n{0:30}  {1}".format("Sets of isomorphic graphs:", "Number of automorphisms:"))
-
-    i = 0
-    while i < len(sets):
-        print("{0:30}  {1}".format(str(sets[i]), str(num_aut[i])))
-        i += 1
-
-
-def solve_gi(graphs):
-    to_solve = list(range(len(graphs)))
-    result = []
-    while to_solve:
-        i = to_solve.pop(0)
-        g = graphs[i]
-        matches = [i]
-        for j in to_solve:
-            h = graphs[j]
-            u = g + h
-            if is_isomorphic([], u.vertices):
-                matches.append(j)
-        for x in matches:
-            if x in to_solve:
-                to_solve.remove(x)
-        result.append(matches)
-    print("\nSets of isomorphic graphs:")
-    for s in result:
-        print(s)
