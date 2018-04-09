@@ -24,10 +24,12 @@ TEST_GRAPHS = set()
 # TEST_GRAPHS.add("threepaths10240.gr")
 # TEST_GRAPHS.add("colorref_smallexample_4_7.grl")
 # TEST_GRAPHS.add("colorref_smallexample_4_16.grl")
-TEST_GRAPHS.add("colorref_smallexample_6_15.grl")
+# TEST_GRAPHS.add("colorref_smallexample_6_15.grl")
 # TEST_GRAPHS.add("torus24.grl")
 # TEST_GRAPHS.add("colorref_smallexample_2_49.grl")
 # TEST_GRAPHS.add("trees36.grl")
+# TEST_GRAPHS.add("cubes6.grl")
+TEST_GRAPHS.add("torus144.grl")
 
 READ_LIST = True
 
@@ -185,21 +187,21 @@ def evaluate_coloring(coloring):
         if size % 2 == 0:
             if size == 2:
                 if cell[0].id == cell[1].id:
-                    return False, None, None
+                    return False, None, []
             else:
                 check = 0
                 for v in cell:
                     check += v.id
                 if check != 0:
-                    return False, None, None
+                    return False, None, []
                 elif size < smallest_class_size:
                     smallest_class_size = size
                     smallest_class = cell
         else:
-            return False, None, None
+            return False, None, []
 
     if smallest_class is None:
-        return True, None, None
+        return True, None, []
     else:
         x = None
         y = set()
@@ -219,6 +221,28 @@ def color_vertices(coloring):
         color += 1
 
 
+def count_aut(colored, uncolored):
+    coloring = color_refinement(colored, uncolored)
+    evaluation = evaluate_coloring(coloring)
+    result = 0
+    if not evaluation[0]:
+        return 0
+    x = evaluation[1]
+    if x is None:
+        return 1
+    else:
+        uncolored.remove(x)
+        for y in evaluation[2]:
+            pair = (x, y)
+            colored.append(pair)
+            uncolored.remove(y)
+            result += count_aut(colored, uncolored)
+            uncolored.append(y)
+            colored.remove(pair)
+        uncolored.append(x)
+        return result
+
+
 if __name__ == "__main__":
 
     t = time.clock()
@@ -230,15 +254,20 @@ if __name__ == "__main__":
             with open(TESTFILES_PATH + file_name) as f:
                 L = load_graph(f, read_list=True)[0]
 
-            for i in range(len(L) - 1):
-                for j in range(i + 1, len(L)):
-                    g = L[i] + L[j]
-                    coloring = color_refinement([], g.vertices)
-                    evaluation = evaluate_coloring(coloring)
-                    color_vertices(coloring)
-                    dot_name = file_name.split(".")[0] + "_" + str(i) + str(j) + ".dot"
-                    with open(DOTFILES_PATH + dot_name, 'w') as f:
-                        write_dot(g, f)
+            for i in range(len(L)):
+                g = L[i] + L[i]
+                num_aut = count_aut([], g.vertices)
+                print(num_aut)
+
+            # for i in range(len(L) - 1):
+            #     for j in range(i + 1, len(L)):
+            #         g = L[i] + L[j]
+            #         coloring = color_refinement([], g.vertices)
+            #         evaluation = evaluate_coloring(coloring)
+            #         color_vertices(coloring)
+            #         dot_name = file_name.split(".")[0] + "_" + str(i) + str(j) + ".dot"
+            #         with open(DOTFILES_PATH + dot_name, 'w') as f:
+            #             write_dot(g, f)
         else:
             with open(TESTFILES_PATH + file_name) as f:
                 g = load_graph(f)
