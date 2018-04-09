@@ -50,14 +50,14 @@ class Vertex(object):
         A programmer-friendly representation of the vertex.
         :return: The string to approximate the constructor arguments of the `Vertex'
         """
-        return 'Vertex(label={}, #incident={})'.format(self.label, len(self._incidence))
+        return 'V{}'.format(self.number)
 
     def __str__(self) -> str:
         """
         A user-friendly representation of the vertex, that is, its label.
         :return: The string representation of the label.
         """
-        return str(self.label)
+        return "V"+str(self.number)
 
     def is_adjacent(self, other: "Vertex") -> bool:
         """

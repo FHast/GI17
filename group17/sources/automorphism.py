@@ -52,6 +52,7 @@ def get_generators(colored, uncolored, trivial=False):
     x = evaluation[1]
     if x is None:
         cur_mapping = get_mapping(coloring)
+        print(colored)
         print(len(cur_mapping), cur_mapping)
         perm = permutation(len(cur_mapping), mapping=cur_mapping)
         if len(generators) == 0 or not membership(generators, perm):
@@ -70,6 +71,7 @@ def get_generators(colored, uncolored, trivial=False):
                 colored.remove(pair)
         uncolored.append(x)
         # Now for all the other possibilities
+        print("EVAL", evaluation[1], evaluation[2])
         flag = False
         uncolored.remove(x)
         for y in evaluation[2]:
@@ -90,7 +92,6 @@ def get_mapping(coloring):
     for cell in coloring:
         n0 = cell[0].number
         n1 = cell[1].number
-        print(n0, n1)
         mapping[n0]=n1
         mapping[n1]=n0
     return mapping
