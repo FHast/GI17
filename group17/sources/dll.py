@@ -22,6 +22,22 @@ class DoublyLinkedList:
         else:
             raise StopIteration
 
+    def __getitem__(self, index):
+        if (self.size // 2) > index:
+            i = 0
+            node = self.head
+            while i < index:
+                node = node.next
+                i += 1
+            return node.key
+        else:
+            i = self.size - 1
+            node = self.tail
+            while i > index:
+                node = node.prev
+                i -= 1
+            return node.key
+
     def append_left(self, key):
         if self.size > 0:
             current_head = self.head

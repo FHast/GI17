@@ -325,7 +325,7 @@ class Graph(object):
 
         for v in self.vertices:
             new_v = Vertex(disjoint_union)
-            new_v.id = 0
+            new_v.id = -1
             disjoint_union.add_vertex(new_v)
             vertex_map[v] = new_v
         for e in self.edges:

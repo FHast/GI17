@@ -1,6 +1,7 @@
 import os
 
 import time
+from math import inf
 
 from shutil import rmtree
 
@@ -20,14 +21,15 @@ TEST_GRAPHS = set()
 # TEST_GRAPHS.add("threepaths1280.gr")
 # TEST_GRAPHS.add("threepaths2560.gr")
 # TEST_GRAPHS.add("threepaths5120.gr")
-TEST_GRAPHS.add("threepaths10240.gr")
+# TEST_GRAPHS.add("threepaths10240.gr")
 # TEST_GRAPHS.add("colorref_smallexample_4_7.grl")
 # TEST_GRAPHS.add("colorref_smallexample_4_16.grl")
+TEST_GRAPHS.add("colorref_smallexample_6_15.grl")
 # TEST_GRAPHS.add("torus24.grl")
 # TEST_GRAPHS.add("colorref_smallexample_2_49.grl")
 # TEST_GRAPHS.add("trees36.grl")
 
-READ_LIST = False
+READ_LIST = True
 
 TESTFILES_PATH = os.path.split(os.getcwd())[0] + "/testfiles/"
 DOTFILES_PATH = os.path.split(os.getcwd())[0] + "/dotfiles/"
@@ -172,13 +174,53 @@ def color_refinement(colored, uncolored):
                     queue.append(i)
                     in_queue[i] = True
 
-    for v in g.vertices:
-        v.colornum = vertex_to_color[v]
-
     return color_classes
 
 
+def evaluate_coloring(coloring):
+    smallest_class = None
+    smallest_class_size = inf
+    for cell in coloring:
+        size = len(cell)
+        if size % 2 == 0:
+            if size == 2:
+                if cell[0].id == cell[1].id:
+                    return False, None, None
+            else:
+                check = 0
+                for v in cell:
+                    check += v.id
+                if check != 0:
+                    return False, None, None
+                elif size < smallest_class_size:
+                    smallest_class_size = size
+                    smallest_class = cell
+        else:
+            return False, None, None
+
+    if smallest_class is None:
+        return True, None, None
+    else:
+        x = None
+        y = set()
+        for v in smallest_class:
+            if v.id > 0:
+                y.add(v)
+            elif x is None:
+                x = v
+        return True, x, y
+
+
+def color_vertices(coloring):
+    color = 0
+    for cell in coloring:
+        for v in cell:
+            v.colornum = color
+        color += 1
+
+
 if __name__ == "__main__":
+
     t = time.clock()
     if os.path.exists(DOTFILES_PATH):
         rmtree(DOTFILES_PATH)
@@ -191,7 +233,9 @@ if __name__ == "__main__":
             for i in range(len(L) - 1):
                 for j in range(i + 1, len(L)):
                     g = L[i] + L[j]
-                    color_refinement([], g.vertices)
+                    coloring = color_refinement([], g.vertices)
+                    evaluation = evaluate_coloring(coloring)
+                    color_vertices(coloring)
                     dot_name = file_name.split(".")[0] + "_" + str(i) + str(j) + ".dot"
                     with open(DOTFILES_PATH + dot_name, 'w') as f:
                         write_dot(g, f)
@@ -199,7 +243,8 @@ if __name__ == "__main__":
             with open(TESTFILES_PATH + file_name) as f:
                 g = load_graph(f)
 
-            color_refinement([], g.vertices)
+            coloring = color_refinement([], g.vertices)
+            color_vertices(coloring)
             dot_name = file_name.split(".")[0] + ".dot"
             with open(DOTFILES_PATH + dot_name, 'w') as f:
                 write_dot(g, f)
