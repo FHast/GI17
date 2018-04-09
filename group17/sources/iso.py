@@ -5,8 +5,8 @@ from math import inf
 
 from shutil import rmtree
 
-from sources.dll import DoublyLinkedList
-from sources.graph_io import load_graph, write_dot
+from group17.sources.dll import DoublyLinkedList
+from group17.sources.graph_io import load_graph, write_dot
 
 TEST_GRAPHS = set()
 
@@ -213,14 +213,6 @@ def evaluate_coloring(coloring):
         return True, x, y
 
 
-def color_vertices(coloring):
-    color = 0
-    for cell in coloring:
-        for v in cell:
-            v.colornum = color
-        color += 1
-
-
 def count_aut(colored, uncolored):
     coloring = color_refinement(colored, uncolored)
     evaluation = evaluate_coloring(coloring)
@@ -243,41 +235,77 @@ def count_aut(colored, uncolored):
         return result
 
 
-if __name__ == "__main__":
+def is_isomorphic(colored, uncolored):
+    coloring = color_refinement(colored, uncolored)
+    evaluation = evaluate_coloring(coloring)
+    if not evaluation[0]:
+        return False
+    x = evaluation[1]
+    if x is None:
+        return True
+    else:
+        uncolored.remove(x)
+        for y in evaluation[2]:
+            pair = (x, y)
+            colored.append(pair)
+            uncolored.remove(y)
+            if is_isomorphic(colored, uncolored):
+                return True
+            uncolored.append(y)
+            colored.remove(pair)
+        uncolored.append(x)
+        return False
 
-    t = time.clock()
-    if os.path.exists(DOTFILES_PATH):
-        rmtree(DOTFILES_PATH)
-    os.makedirs(DOTFILES_PATH)
-    for file_name in TEST_GRAPHS:
-        if READ_LIST:
-            with open(TESTFILES_PATH + file_name) as f:
-                L = load_graph(f, read_list=True)[0]
 
-            for i in range(len(L)):
-                for j in range(i + 1, len(L)):
-                    g = L[i] + L[j]
-                    num_aut = count_aut([], g.vertices)
-                    if num_aut != 0:
-                        print(i, j, num_aut)
+def solve_aut_single(graph):
+    u = graph + graph
+    num_aut = count_aut([], u.vertices)
+    print("\nNumber of automorphisms: " + str(num_aut))
 
-            # for i in range(len(L) - 1):
-            #     for j in range(i + 1, len(L)):
-            #         g = L[i] + L[j]
-            #         coloring = color_refinement([], g.vertices)
-            #         evaluation = evaluate_coloring(coloring)
-            #         color_vertices(coloring)
-            #         dot_name = file_name.split(".")[0] + "_" + str(i) + str(j) + ".dot"
-            #         with open(DOTFILES_PATH + dot_name, 'w') as f:
-            #             write_dot(g, f)
-        else:
-            with open(TESTFILES_PATH + file_name) as f:
-                g = load_graph(f)
 
-            coloring = color_refinement([], g.vertices)
-            color_vertices(coloring)
-            dot_name = file_name.split(".")[0] + ".dot"
-            with open(DOTFILES_PATH + dot_name, 'w') as f:
-                write_dot(g, f)
+def solve_aut_list(graphs):
+    to_solve = list(range(len(graphs)))
+    sets = []
+    num_aut = []
+    while to_solve:
+        i = to_solve.pop(0)
+        g = graphs[i]
+        matches = [i]
+        for j in to_solve:
+            h = graphs[j]
+            u = g + h
+            if is_isomorphic([], u.vertices):
+                matches.append(j)
+        for x in matches:
+            if x in to_solve:
+                to_solve.remove(x)
+        sets.append(matches)
+        w = g + g
+        num_aut.append(count_aut([], w.vertices))
+    print("\n{0:30}  {1}".format("Sets of isomorphic graphs:", "Number of automorphisms:"))
 
-    print(time.clock() - t)
+    i = 0
+    while i < len(sets):
+        print("{0:30}  {1}".format(str(sets[i]), str(num_aut[i])))
+        i += 1
+
+
+def solve_gi(graphs):
+    to_solve = list(range(len(graphs)))
+    result = []
+    while to_solve:
+        i = to_solve.pop(0)
+        g = graphs[i]
+        matches = [i]
+        for j in to_solve:
+            h = graphs[j]
+            u = g + h
+            if is_isomorphic([], u.vertices):
+                matches.append(j)
+        for x in matches:
+            if x in to_solve:
+                to_solve.remove(x)
+        result.append(matches)
+    print("\nSets of isomorphic graphs:")
+    for s in result:
+        print(s)
