@@ -14,9 +14,10 @@ TEST_GRAPHS = set()
 # TEST_GRAPHS.add("colorref_largeexample_4_1026.grl")
 # TEST_GRAPHS.add("colorref_largeexample_6_960.grl")
 # TEST_GRAPHS.add("colorref_smallexample_2_49.grl")
-TEST_GRAPHS.add("colorref_smallexample_4_7.grl")
+# TEST_GRAPHS.add("colorref_smallexample_4_7.grl")
 # TEST_GRAPHS.add("colorref_smallexample_4_16.grl")
 # TEST_GRAPHS.add("colorref_smallexample_6_15.grl")
+TEST_GRAPHS.add("threepaths2560.gr")
 
 TESTFILES_PATH = os.path.split(os.getcwd())[0] + "/testfiles/"
 DOTFILES_PATH = os.path.split(os.getcwd())[0] + "/dotfiles/"
@@ -111,18 +112,19 @@ def assign_colors(partition: Set[FrozenSet[Vertex]]):
         colornum += 1
 
 
+def count_isomorphisms(vertices_g, vertices_h, done, todo) -> int:
+    return 0
+
+
 if __name__ == "__main__":
     if not os.path.exists(DOTFILES_PATH):
         os.makedirs(DOTFILES_PATH)
     for file_name in TEST_GRAPHS:
         with open(TESTFILES_PATH + file_name) as f:
-            L = load_graph(f, read_list=True)
+            L = load_graph(f)
 
-        size = len(L[0])
-        for i in range(size):
-            for j in range(i + 1, size):
-                g = L[0][i] + L[0][j]
-                color_refinement(g)
-                dot_name = file_name.split(".")[0] + "_graph" + str(i) + "_graph" + str(j) + ".dot"
-                with open(DOTFILES_PATH + dot_name, 'w') as f:
-                    write_dot(g, f)
+        g = L
+        color_refinement(g)
+        dot_name = "Test.dot"
+        with open(DOTFILES_PATH + dot_name, 'w') as f:
+            write_dot(g, f)
