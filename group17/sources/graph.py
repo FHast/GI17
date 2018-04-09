@@ -43,6 +43,7 @@ class Vertex(object):
         self._graph = graph
         self.label = label
         self._incidence = {}
+        self.number = -1
 
     def __repr__(self):
         """
@@ -326,6 +327,7 @@ class Graph(object):
         for v in self.vertices:
             new_v = Vertex(disjoint_union)
             new_v.id = -1
+            new_v.number = v.number
             disjoint_union.add_vertex(new_v)
             vertex_map[v] = new_v
         for e in self.edges:
@@ -335,6 +337,7 @@ class Graph(object):
         for v in other.vertices:
             new_v = Vertex(disjoint_union)
             new_v.id = 1
+            new_v.number = v.number
             disjoint_union.add_vertex(new_v)
             vertex_map[v] = new_v
         for e in other.edges:
