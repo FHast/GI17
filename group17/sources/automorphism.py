@@ -31,8 +31,8 @@ TEST_GRAPHS = set()
 # TEST_GRAPHS.add("colorref_smallexample_6_15.grl")
 # TEST_GRAPHS.add("torus24.grl")
 # TEST_GRAPHS.add("colorref_smallexample_2_49.grl")
-TEST_GRAPHS.add("trees36.grl")
-# TEST_GRAPHS.add("cubes3.grl")
+# TEST_GRAPHS.add("trees36.grl")
+TEST_GRAPHS.add("cubes5.grl")
 # TEST_GRAPHS.add("torus144.grl")
 
 READ_LIST = True
@@ -55,7 +55,7 @@ def get_generators(colored, uncolored, trivial=False):
         #print(colored)
         #print(len(cur_mapping), cur_mapping)
         perm = permutation(len(cur_mapping), mapping=cur_mapping)
-        print(perm, generators)
+        #print(perm, generators)
         if not membership(generators, perm):
             generators.append(perm)
         return True  # 
@@ -101,8 +101,6 @@ def get_mapping(coloring):
 
 def membership(generators, perm):
     # print(perm, generators)
-    if perm.istrivial():
-        return True
     if perm in generators:
         return True
     non_trivial = FindNonTrivialOrbit(generators)
@@ -134,13 +132,14 @@ def automorphisms(graph):
     combined = graph + graph
     generators = []
     get_generators([], combined.vertices, generators)
-    print(generators)
     # order computation
     non_trivial = FindNonTrivialOrbit(generators)
     orbit = Orbit(generators, non_trivial)
     stabilizer = Stabilizer(generators, non_trivial)
     
-    return len(orbit) * len(stabilizer)
+    print(non_trivial, generators)
+    
+    return len(orbit) * (len(stabilizer)+1)
 
 
 def test_membership():
@@ -161,7 +160,7 @@ def test_automorphism():
             with open(TESTFILES_PATH + file_name) as f:
                 L = load_graph(f, read_list=True)[0]
 
-            for i in range(1):
+            for i in range(len(L)):
                 aut = automorphisms(L[i])
                 print(i, "#aut:", aut)
     print(time.clock() - t)
