@@ -1,3 +1,4 @@
+
 from math import inf
 from sources.dll import DoublyLinkedList
 
@@ -345,6 +346,6 @@ def evaluate_coloring(coloring):
         for v in smallest_class:
             if v.id > 0:
                 y.add(v)
-            elif x is None:
+            elif x is None and v.id < 0:
                 x = v
         return True, x, y

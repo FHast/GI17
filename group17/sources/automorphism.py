@@ -31,8 +31,8 @@ TEST_GRAPHS = set()
 # TEST_GRAPHS.add("colorref_smallexample_6_15.grl")
 # TEST_GRAPHS.add("torus24.grl")
 # TEST_GRAPHS.add("colorref_smallexample_2_49.grl")
-# TEST_GRAPHS.add("trees36.grl")
-TEST_GRAPHS.add("cubes3.grl")
+TEST_GRAPHS.add("trees36.grl")
+# TEST_GRAPHS.add("cubes3.grl")
 # TEST_GRAPHS.add("torus144.grl")
 
 READ_LIST = True
@@ -52,10 +52,11 @@ def get_generators(colored, uncolored, trivial=False):
     x = evaluation[1]
     if x is None:
         cur_mapping = get_mapping(coloring)
-        print(colored)
-        print(len(cur_mapping), cur_mapping)
+        #print(colored)
+        #print(len(cur_mapping), cur_mapping)
         perm = permutation(len(cur_mapping), mapping=cur_mapping)
-        if len(generators) == 0 or not membership(generators, perm):
+        print(perm, generators)
+        if not membership(generators, perm):
             generators.append(perm)
         return True  # 
     else:
@@ -71,7 +72,6 @@ def get_generators(colored, uncolored, trivial=False):
                 colored.remove(pair)
         uncolored.append(x)
         # Now for all the other possibilities
-        print("EVAL", evaluation[1], evaluation[2])
         flag = False
         uncolored.remove(x)
         for y in evaluation[2]:
@@ -92,13 +92,17 @@ def get_mapping(coloring):
     for cell in coloring:
         n0 = cell[0].number
         n1 = cell[1].number
-        mapping[n0]=n1
-        mapping[n1]=n0
+        if cell[0].id > 0:
+            mapping[n0]=n1
+        else:
+            mapping[n1]=n0
     return mapping
     
 
 def membership(generators, perm):
     # print(perm, generators)
+    if perm.istrivial():
+        return True
     if perm in generators:
         return True
     non_trivial = FindNonTrivialOrbit(generators)
@@ -130,7 +134,7 @@ def automorphisms(graph):
     combined = graph + graph
     generators = []
     get_generators([], combined.vertices, generators)
-    # print(generators)
+    print(generators)
     # order computation
     non_trivial = FindNonTrivialOrbit(generators)
     orbit = Orbit(generators, non_trivial)
@@ -157,7 +161,7 @@ def test_automorphism():
             with open(TESTFILES_PATH + file_name) as f:
                 L = load_graph(f, read_list=True)[0]
 
-            for i in range(len(L)):
+            for i in range(1):
                 aut = automorphisms(L[i])
                 print(i, "#aut:", aut)
     print(time.clock() - t)
