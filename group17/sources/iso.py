@@ -1,6 +1,5 @@
-
 from math import inf
-from sources.dll import DoublyLinkedList
+from group17.sources.dll import DoublyLinkedList
 
 
 def solve_gi(graphs):

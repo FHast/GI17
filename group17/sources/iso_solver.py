@@ -1,6 +1,6 @@
 import os
-from sources.graph_io import load_graph
-from sources.iso import solve_aut_single, solve_gi, solve_aut_list
+from group17.sources.graph_io import load_graph
+from group17.sources.iso import solve_aut_single, solve_gi, solve_aut_list
 
 # The name of the directory that contains the graph files
 GRAPH_DIRECTORY = "testfiles"
